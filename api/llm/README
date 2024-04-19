@@ -1,0 +1,23 @@
+## Pre-req
+- Make sure Claude is enabled in Bedrock
+- Make sure docker is running 
+
+## To deploy the LLM to AWS
+- cd `./llm`
+- Make the script executable `chmod +x script.sh`
+- run the script `./script.sh`
+- Now your image will be deployed in ECR, continue with the infra deployment steps. 
+
+
+## To run LLM locally
+- `cd ./app`
+    - Replace `os.environ["kendraIndexId"]` with the Kendra Index ID you would like to use, in `tools.py`
+    - Replace `os.environ["apiEndpoint"]` with the API Gateway Endpoint outputted by the CloudFormation Stack, in `tools.py`
+    - Replace `os.environ["idBucketName"]` with the S3 ID Bucket name created by the CloudFormation Stack, in `main.py`
+- Run `python3 -m uvicorn main:app --reload`. LLM API will be live at `http://127.0.0.1:8000/`
+
+
+## Endpoint design 
+Add APIs, request and response formats
+
+
