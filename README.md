@@ -44,7 +44,7 @@ In your chosen AWS Account, complete the following steps:
 * Ensure that the [Anthropic Claude 3 Haiku Model is enabled in Amazon Bedrock by adding model access](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html#model-access-add).
 * Ensure that docker is running. This can be done by running the command `sudo docker info`. If Docker is running, information about Docker is displayed.
 
-> Please note: Under a set of assumptions made on a monthly basis, running this workload would have an estimated hourly cost of around $1.34. Make sure to check the pricing details for each individual service to understand the costs you may be charged for different usage tiers and resource configurations
+> Note: Under a set of assumptions made on a monthly basis, running this workload would have an estimated hourly cost of around $1.34. Make sure to check the pricing details for each individual service to understand the costs you may be charged for different usage tiers and resource configurations
 
 
 ## Setup
@@ -64,12 +64,23 @@ To deploy the tools infrastructure to your AWS account, follow the instructions 
 
 * Navigate to `./infra`
 * Run `npm run build` to compile typescript to javascript
-* Run `cdk deploy --parameters SesBankEmail={email} --parameters SesCustomerEmail={email} --parameters LLMImageTag={tag}` to deploy this stack to your default AWS account/region. The `LLMImageTag` is the tag of the docker image which can be found in AWS console within the ECR service. Enter in your parameter values. A CloudFormation Stack will be created in your AWS account.
-  * Example usage: `cdk deploy --parameters SesBankEmail=owner@anybank.com --parameters SesCustomerEmail=anup.ravi@test.com --parameters LLMImageTag=20240307_111334`
+* Run the following to deploy this stack to your default AWS account/region. The `LLMImageTag` is the tag of the docker image which can be found in AWS console within the ECR service. Enter in your parameter values. A CloudFormation Stack will be created in your AWS account.
+
+```
+cdk deploy --parameters SesBankEmail={email} --parameters SesCustomerEmail={email} --parameters LLMImageTag={tag}
+```
+
+
+Example usage:
+```
+cdk deploy --parameters SesBankEmail=owner@anybank.com --parameters SesCustomerEmail=anup.ravi@test.com --parameters LLMImageTag=20240307_111334
+```
+
 * Once your deployment is complete:
   * An email will be sent to the `SesBankEmail` and `SesCustomerEmail` you supplied to verify the new SES identities created. Please make sure to click the verification link provided in the email.
   * Visit the ECS Cluster created by the stack, open the running service and visit its task. The public IP address is your LLM endpoints.
   * Go to the Console and search for Elastic Container Service (ECS). Click on the cluster that was created and choose the task that is currently running. In the Configuration section for that task, you will find the Public IP address which is going to be your LLM endpoint (will be used in the next step).
+
 
 > Note: If the CloudFormation Stack gets stuck on waiting for the completion of the LLMDeployment, it is possible that your ECS task has failed. This may be because the architecture of the machine you built the image on does not match what we have configured to be used in our project (ARM64). In that case, manually update the architecture the ECS Task Definition utilises (to possibly use X86 instead).
 
@@ -89,6 +100,26 @@ amplify publish
 > Note:  In chrome or some other browsers, you may not receive any response from the agent for very long. This is due to a Mixed Content error in the console as the ECS public endpoint is in http while the react app is deployed to https. To solve this in Chrome, press of the icon near the URL > Site settings > Insecure content > Allow
 
 * Visit the outputted domain where your application has been deployed. Congratulations you can not start talking to the digital assistant!
+
+
+## Cleanup 
+
+
+Complete the following steps to clean-up and remove the environment from your account:
+
+* Delete the CDK `PennyInfraStack` locally by running the following commands. This will automatically delete all the stacks and resources associated with the `PennyInfraStack` in your AWS account.
+
+```
+cd ./infra
+cdk destroy 
+```
+
+
+* [Delete the following S3 buckets](https://docs.aws.amazon.com/AmazonS3/latest/userguide/delete-bucket.html) - ID Bucket and AnyBank Catalog Bucket. Make sure to [empty the bucket](https://docs.aws.amazon.com/AmazonS3/latest/userguide/empty-bucket.html) before you delete it. Find these buckets by searching for the prefixes `pennyinfrastack-idbucket` and `pennyinfrastack-anybankcatalogbucket`.
+
+* [Delete the frontend application hosted on Amplify](https://repost.aws/knowledge-center/amplify-delete-application) by running `amplify delete`. 
+
+* Delete the image artifacts and the private repository on ECR with the name `penny-workshop`.
 
 
 ## Security
