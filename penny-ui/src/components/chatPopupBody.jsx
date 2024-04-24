@@ -79,13 +79,13 @@ class ChatPopupBody extends React.Component  {
                 body: requestBody
             };
 
-        let newPennyChat = {
+        let waitPennyChat = {
                 user: 'Penny',
                 message: "Penny is typing...",
         }
 
         this.setState(prevState => ({
-                chats: [...prevState.chats, newPennyChat],
+                chats: [...prevState.chats, waitPennyChat],
                 inputValue: '',
         }));
         fetch(this.props.llmApiEndpoint + 'question', request)
@@ -136,13 +136,13 @@ class ChatPopupBody extends React.Component  {
 
         url = this.props.llmApiEndpoint + 'uploadId'
 
-        let newPennyChat = {
+        let docPennyChat = {
             user: 'Penny',
             message: "We have received your document. Please wait while we complete the verification.",
         }
 
         this.setState(prevState => ({
-            chats: [...prevState.chats, newPennyChat],
+            chats: [...prevState.chats, docPennyChat],
             inputValue: '',
         }));
 
@@ -152,28 +152,30 @@ class ChatPopupBody extends React.Component  {
             console.log("data" + JSON.stringify(data))
             console.log("POST Agent Call successful: " + JSON.stringify(data.message))
 
+            var docRespPennyChat = ''
+
             if( data.detail) {
-                var newPennyChat = {
+                docRespPennyChat = {
                     user: 'Penny',
                     message: data.detail + " while uploading the file. Please try again",
                 }
             }
             else {
-                var newPennyChat = {
+                docRespPennyChat = {
                     user: 'Penny',
                     message: data.message,
                 }
             }
 
             let chats = [...this.state.chats];
-            chats.push(newPennyChat);
+            chats.push(docRespPennyChat);
 
             this.setState({
                     chats: chats,
                     inputValue: '',
             });
 
-            this.props.handleAddChat(newPennyChat)
+            this.props.handleAddChat(docRespPennyChat)
         })
         .catch(error => {
             console.log('Error:', error)

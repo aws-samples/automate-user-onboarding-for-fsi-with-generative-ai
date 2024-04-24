@@ -2,11 +2,6 @@ import * as React from 'react';
 import ChatPopupBody from './chatPopupBody';
 
 class ChatPopup extends React.Component  {
-    
-    constructor(props) {
-        super(props);
-    }
-
 
     render() {
         return (

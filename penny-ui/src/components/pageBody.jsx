@@ -2,10 +2,6 @@ import * as React from 'react';
 
 class PageBody extends React.Component  {
 
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         return (
             <div style={{
