@@ -101,6 +101,20 @@ amplify publish
 
 * Visit the outputted domain where your application has been deployed. Congratulations you can not start talking to the digital assistant!
 
+### (optional) Run LLM and Demo Application Locally
+
+* Ensure that you have completed the `Deploy the Tools Infrastructure to AWS Account` step
+
+* Navigate to `./api/llm`
+  * Replace `os.environ["kendraIndexId"]` with the Kendra Index ID you would like to use, in `tools.py`
+  * Replace `os.environ["apiEndpoint"]` with the API Gateway Endpoint outputted by the CloudFormation Stack, in `tools.py`
+  * Replace `os.environ["idBucketName"]` with the S3 ID Bucket name created by the CloudFormation Stack, in `main.py`
+* Run `python3 -m uvicorn main:app --reload`. LLM API will be live at `http://127.0.0.1:8000/`
+
+* Navigate to `./penny-ui`
+* Run `npm i` to install depedencies
+* Run `npm run start` to start the development server/ Demo Application will be live at `http://localhost:3000/`
+
 
 ## Cleanup 
 
