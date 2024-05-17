@@ -63,6 +63,7 @@ To deploy the agent to your AWS account, follow the instructions below:
 To deploy the tools infrastructure to your AWS account, follow the instructions below:
 
 * Navigate to `./infra`
+* Run `npm i` to install node modules
 * Run `npm run build` to compile typescript to javascript
 * Run the following to deploy this stack to your default AWS account/region. The `LLMImageTag` is the tag of the docker image which can be found in AWS console within the ECR service. Enter in your parameter values. A CloudFormation Stack will be created in your AWS account.
 
@@ -100,6 +101,20 @@ amplify publish
 > Note:  In chrome or some other browsers, you may not receive any response from the agent for very long. This is due to a Mixed Content error in the console as the ECS public endpoint is in http while the react app is deployed to https. To solve this in Chrome, press of the icon near the URL > Site settings > Insecure content > Allow
 
 * Visit the outputted domain where your application has been deployed. Congratulations you can not start talking to the digital assistant!
+
+### (optional) Run LLM and Demo Application Locally
+
+* Ensure that you have completed the `Deploy the Tools Infrastructure to AWS Account` step
+
+* Navigate to `./api/llm`
+  * Replace `os.environ["kendraIndexId"]` with the Kendra Index ID you would like to use, in `tools.py`
+  * Replace `os.environ["apiEndpoint"]` with the API Gateway Endpoint outputted by the CloudFormation Stack, in `tools.py`
+  * Replace `os.environ["idBucketName"]` with the S3 ID Bucket name created by the CloudFormation Stack, in `main.py`
+* Run `python3 -m uvicorn main:app --reload`. LLM API will be live at `http://127.0.0.1:8000/`
+
+* Navigate to `./penny-ui`
+* Run `npm i` to install depedencies
+* Run `npm run start` to start the development server/ Demo Application will be live at `http://localhost:3000/`
 
 
 ## Cleanup 
