@@ -63,6 +63,7 @@ To deploy the agent to your AWS account, follow the instructions below:
 To deploy the tools infrastructure to your AWS account, follow the instructions below:
 
 * Navigate to `./infra`
+* Run `npm i` to install node modules
 * Run `npm run build` to compile typescript to javascript
 * Run the following to deploy this stack to your default AWS account/region. The `LLMImageTag` is the tag of the docker image which can be found in AWS console within the ECR service. Enter in your parameter values. A CloudFormation Stack will be created in your AWS account.
 
