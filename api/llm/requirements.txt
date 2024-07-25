@@ -2,7 +2,7 @@ fastapi==0.109.1
 uvicorn==0.24.0.post1
 pydantic==2.5.2
 langchain==0.1.12
-langchain-community==0.2.5
+langchain-community==0.2.9
 torch==2.1.1
 torchvision==0.16.1
 sentence-transformers==2.2.2
