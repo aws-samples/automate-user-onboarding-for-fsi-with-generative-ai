@@ -30,7 +30,6 @@ def setup_knowledge_base():
             "top_k": 250,
             "top_p": 0.999,
             "stop_sequences": ["\\n\\nHuman:", "\\n\\System:"],
-            "anthropic_version": "bedrock-2023-05-31"
         }
     )
 
@@ -71,7 +70,7 @@ class email_validator(BaseTool):
 
             url = API_ENDPOINT + '/account'
             params = {'email': email.lower()}
-            r = requests.get(url = url, params = params)
+            r = requests.get(url = url, params = params, timeout=300)
 
             print(r.json())
             if r.json()["statusCode"] != 200:
@@ -102,7 +101,7 @@ class document_verification(BaseTool):
             'file_name': file_name,
             'required_field_values': required_field_values
         }
-        r = requests.post(url=url, json=body)
+        r = requests.post(url=url, json=body, timeout=300)
 
         print(r.json())
         if r.json()["statusCode"] != 200:
@@ -132,7 +131,7 @@ class selfie_verification(BaseTool):
             'id_file_name': id_file_name,
             'selfie_file_name': selfie_file_name
         }
-        r = requests.post(url=url, json=body)
+        r = requests.post(url=url, json=body, timeout=300)
 
         if r.json()["statusCode"] != 200:
             return "Respond that our onboarding service is currently unavailable and to try again later."
@@ -175,7 +174,7 @@ class finish_onboarding(BaseTool):
             'selfie_file_name': selfie_file_name
         }
         print(body)
-        r = requests.post(url=url, json=body)
+        r = requests.post(url=url, json=body, timeout=300)
         print(r)
 
         if r.status_code != 200:

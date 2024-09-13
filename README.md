@@ -74,14 +74,12 @@ cdk deploy --parameters SesBankEmail={email} --parameters SesCustomerEmail={emai
 
 Example usage:
 ```
-cdk deploy --parameters SesBankEmail=owner@anybank.com --parameters SesCustomerEmail=anup.ravi@test.com --parameters LLMImageTag=20240307_111334
+cdk deploy --parameters SesBankEmail=owner@anybank.com --parameters SesCustomerEmail=anup@test.com --parameters LLMImageTag=20240307_123456
 ```
 
 * Once your deployment is complete:
   * An email will be sent to the `SesBankEmail` and `SesCustomerEmail` you supplied to verify the new SES identities created. Please make sure to click the verification link provided in the email.
-  * Visit the ECS Cluster created by the stack, open the running service and visit its task. The public IP address is your LLM endpoints.
-  * Go to the Console and search for Elastic Container Service (ECS). Click on the cluster that was created and choose the task that is currently running. In the Configuration section for that task, you will find the Public IP address which is going to be your LLM endpoint (will be used in the next step).
-
+  * Copy the `CloudFrontDomainName` outputted by the CloudFormation Stack
 
 > Note: If the CloudFormation Stack gets stuck on waiting for the completion of the LLMDeployment, it is possible that your ECS task has failed. This may be because the architecture of the machine you built the image on does not match what we have configured to be used in our project (ARM64). In that case, manually update the architecture the ECS Task Definition utilises (to possibly use X86 instead).
 
@@ -89,7 +87,7 @@ cdk deploy --parameters SesBankEmail=owner@anybank.com --parameters SesCustomerE
 
 To deploy the demo application to your AWS account, follow the instructions below:
 
-* Copy the LLM endpoint from the previous step. Update the `LLM_API_ENDPOINT` constant in `App.js` within `./penny-ui/src/`
+* Replace the value of `LLM_API_ENDPOINT` constant in `App.js` within `./penny-ui/src/` with `CloudFrontDomainName` outputted by the CloudFormation Stack.
 * Navigate to `./penny-ui`
 * Run the below commands to deploy the application amplify:
 ```
@@ -98,7 +96,6 @@ amplify init
 amplify add hosting
 amplify publish
 ```
-> Note:  In chrome or some other browsers, you may not receive any response from the agent for very long. This is due to a Mixed Content error in the console as the ECS public endpoint is in http while the react app is deployed to https. To solve this in Chrome, press of the icon near the URL > Site settings > Insecure content > Allow
 
 * Visit the outputted domain where your application has been deployed. Congratulations you can not start talking to the digital assistant!
 

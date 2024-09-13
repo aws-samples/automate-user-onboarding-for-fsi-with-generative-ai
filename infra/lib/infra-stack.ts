@@ -12,6 +12,10 @@ import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as kendra from "aws-cdk-lib/aws-kendra";
 import * as ses from "aws-cdk-lib/aws-ses";
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
+import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
+import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
+
 
 export class PennyInfraStack extends cdk.Stack {
   private customerTable: dynamodb.Table
@@ -394,5 +398,53 @@ export class PennyInfraStack extends cdk.Stack {
       securityGroups: [sg],
       serviceName: 'LLMFargateService'
     })    
+
+    const lb = new elbv2.ApplicationLoadBalancer(this, 'PennyALB', {
+      vpc: vpc,
+      internetFacing: true,
+    })
+  
+    const httpListener = lb.addListener('PennyHttpListener', {
+      port: 80,
+      open: true,
+    })
+  
+    httpListener.addTargets('PennyECS', {
+      port: 80,
+      targets: [this.llmService],
+      healthCheck: {
+        path: '/',
+        interval: cdk.Duration.seconds(60),
+      },
+    })
+
+    const corsHeadersPolicy = new cloudfront.ResponseHeadersPolicy(this, 'CorsHeadersPolicy', {
+      responseHeadersPolicyName: 'CorsHeadersPolicy',
+      corsBehavior: {
+        accessControlAllowOrigins: ['*'],
+        accessControlAllowMethods: ['GET', 'HEAD', 'OPTIONS', 'PUT', 'POST', 'PATCH', 'DELETE'],
+        accessControlAllowHeaders: ['*'],
+        accessControlAllowCredentials: false,
+        originOverride: true,
+      },
+    });
+  
+    const distribution = new cloudfront.Distribution(this, 'PennyDistribution', {
+      defaultBehavior: {
+        origin: new origins.HttpOrigin(lb.loadBalancerDnsName, {
+          protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
+        }),
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+        originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER,
+        responseHeadersPolicy: corsHeadersPolicy,
+      },
+    });
+  
+    new cdk.CfnOutput(this, 'CloudFrontDomainName', {
+      value: distribution.distributionDomainName,
+    });
+
   }
 }

@@ -3,9 +3,12 @@ import * as React from 'react';
 import ChatPopup from './components/chatPopup';
 import PageBody from './components/pageBody';
 
-// Enter ECS public endpoint here (make sure to add back slash at the end)
+// Fill with `CloudFrontDomainName` value outputted by your CloudFormation Stack 
+// Eg. const LLM_API_ENDPOINT = 'https://1234example.cloudfront.net/' (make sure to add back slash at the end)
+const LLM_API_ENDPOINT = 'https://<your-cloudfront-domain>/'   
+
+// Uncomment below for local development
 // const LLM_API_ENDPOINT = 'http://127.0.0.1:8000/'
-const LLM_API_ENDPOINT = 'http://<public-ip>/'
 
 class App extends React.Component {
   constructor(props) {
