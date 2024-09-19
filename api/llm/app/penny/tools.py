@@ -3,7 +3,6 @@ from langchain.chains import RetrievalQA
 import boto3
 import json
 from langchain.agents import Tool
-from langchain.embeddings.sentence_transformer import SentenceTransformerEmbeddings
 from langchain_community.chat_models import BedrockChat
 from langchain_community.retrievers import AmazonKendraRetriever
 from pydantic import EmailStr, Field
@@ -11,11 +10,7 @@ from email_validator import validate_email, EmailNotValidError
 import requests
 import os
 
-#Bedrock client initialization
 bedrock = boto3.client(service_name='bedrock-runtime')
-#vector db init
-modeled = SentenceTransformerEmbeddings(model_name="all-mpnet-base-v2")
-
 API_ENDPOINT = os.environ["apiEndpoint"]
 
 def setup_knowledge_base():
@@ -23,7 +18,7 @@ def setup_knowledge_base():
     We assume that the product knowledge base is simply a text file.
     """
     llm = BedrockChat(
-        model_id='anthropic.claude-3-haiku-20240307-v1:0', 
+        model_id='anthropic.claude-3-5-sonnet-20240620-v1:0', 
         client=bedrock,
         model_kwargs={
             "temperature": 1,
@@ -133,7 +128,7 @@ class selfie_verification(BaseTool):
         }
         r = requests.post(url=url, json=body, timeout=300)
 
-        if r.json()["statusCode"] != 200:
+        if r.status_code != 200:
             return "Respond that our onboarding service is currently unavailable and to try again later."
 
         print(r.json())
@@ -142,18 +137,6 @@ class selfie_verification(BaseTool):
     def _arun(self, query: str):
         raise NotImplementedError("This tool does not support async")
     
-
-class ask_question(BaseTool):
-    name = "AskUser"
-    description = "Use this tool to ask something to the user. " \
-                    "It takes the question you want to ask as the input" \
-                  "It will return a question that you can ask"
-
-    def _run(self, question):
-        return "ask user " + question
-
-    def _arun(self, query: str):
-        raise NotImplementedError("This tool does not support async")
     
 class finish_onboarding(BaseTool):
     name = "SaveData"
@@ -193,14 +176,8 @@ def get_tools():
     # we only use one tool for now, but this is highly extensible!
     knowledge_base = setup_knowledge_base()
     tools = [
-        Tool(
-            name="ProductSearch",
-            func=knowledge_base.run,
-            description="useful for when you need to answer any question",
-        ),
-        #product_search
+        product_search(),
         email_validator(),
-        ask_question(),
         document_verification(),
         selfie_verification(),
         finish_onboarding()

@@ -29,13 +29,10 @@ def extract_text(id_file_name):
                 if "ValueDetection" in str(key):
                     curr_val = str(val['Text'])
             id_field_values[curr_type] = curr_val
-            print(id_field_values)
 
-    print(id_field_values)
     return id_field_values
 
 def compare_fields(id_field_values, required_field_values):
-    
     for key, val in required_field_values.items():
         if not ((key in id_field_values) and (val.lower() == id_field_values[key].lower())):
             return "The details you provided for " + key + " do not match your ID"
@@ -52,16 +49,13 @@ def main(event, context):
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST"
     }
+    body= ''
     
-    print(event)
-
     id_file_name = event["file_name"]
     required_field_values = event["required_field_values"]
 
     try:
         id_file_values = extract_text(id_file_name)
-        print("Extracted info:" + str(id_file_values))
-        
         body = compare_fields(id_file_values, required_field_values)
 
     except Exception as e:

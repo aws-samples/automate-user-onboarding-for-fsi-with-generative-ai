@@ -2,7 +2,7 @@
 
 In this repository, we present a solution that harnesses the power of Generative AI to streamline the user onboarding process for financial services through a digital assistant. Onboarding new customers in the banking is a crucial step in the customer journey, involving a series of activities designed to fulfill Know-Your-Customer (KYC) requirements, conduct necessary verifications, and introduce them to the bank's products or services. Traditionally, user onboarding has been a tedious and heavily manual process. Our solution provides practical guidance on addressing this challenge by leveraging a Generative AI assistant on AWS. 
 
-Amazon Bedrock is a fully managed service that offers a choice of high-performing foundation models (FMs) from leading AI companies like AI21 Labs, Anthropic, Cohere, Meta, Mistral AI, Stability AI, and Amazon via a single API, along with a broad set of capabilities you need to build generative AI applications with security, privacy, and responsible AI. Using Anthropic Claude 3 Haiku on Amazon Bedrock, we build a digital assistant that automates paperwork, identity verifications, and engages customers through conversational interactions, called Amazon Penny. As a result, customers can be onboarded in a matter of minutes through secure, automated workflows. 
+Amazon Bedrock is a fully managed service that offers a choice of high-performing foundation models (FMs) from leading AI companies like AI21 Labs, Anthropic, Cohere, Meta, Mistral AI, Stability AI, and Amazon via a single API, along with a broad set of capabilities you need to build generative AI applications with security, privacy, and responsible AI. Using Anthropic Claude 3.5 Sonnet on Amazon Bedrock, we build a digital assistant that automates paperwork, identity verifications, and engages customers through conversational interactions, called Amazon Penny. As a result, customers can be onboarded in a matter of minutes through secure, automated workflows. 
 
 ## Architecture
 
@@ -13,9 +13,9 @@ The flow of the application is as follows:
 
 1. Users access the front-end website hosted within the AWS Amplify. 
 
-2. The website invokes an endpoint to interact with the digital assistant, Penny, which is containerized and deployed in AWS Fargate. 
+2. The website invokes an Amazon CloudFront endpoint to interact with the digital assistant, Penny, which is containerized and deployed in AWS Fargate. 
 
-3. The digital assistant uses a custom Langchain Agent to answer questions on the bank's products and services and orchestrate the onboarding flow. The Large Language Model (LLM) used by the agent is Anthropic Claude 3 Haiku, provided by Amazon Bedrock. 
+3. The digital assistant uses a custom Langchain Agent to answer questions on the bank's products and services and orchestrate the onboarding flow. The Large Language Model (LLM) used by the agent is Anthropic Claude 3.5 Sonnet, provided by Amazon Bedrock. 
 
 4. If the user asks a general question related to the bank's products or services, the agent will utilize a custom Langchain Tool called the Product Search Tool. This tool uses Amazon Kendra linked with an S3 data source which contains the bank's data. 
 
@@ -41,7 +41,7 @@ Identify the AWS Account where you would like to deploy this solution and ensure
 * Install [NodeJS](https://nodejs.org/en) and [Docker](https://www.docker.com/). 
 
 In your chosen AWS Account, complete the following steps:
-* Ensure that the [Anthropic Claude 3 Haiku Model is enabled in Amazon Bedrock by adding model access](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html#model-access-add).
+* Ensure that the [Anthropic Claude 3.5 Sonnet Model is enabled in Amazon Bedrock by adding model access](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html#model-access-add).
 * Ensure that docker is running. This can be done by running the command `sudo docker info`. If Docker is running, information about Docker is displayed.
 
 > Note: Under a set of assumptions made on a monthly basis, running this workload would have an estimated hourly cost of around $1.34. Make sure to check the pricing details for each individual service to understand the costs you may be charged for different usage tiers and resource configurations

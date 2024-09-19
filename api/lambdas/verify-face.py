@@ -26,13 +26,6 @@ def compare_faces(id_file_name, selfie_file_name):
     for faceMatch in response['FaceMatches']:
         position = faceMatch['Face']['BoundingBox']
         similarity = str(faceMatch['Similarity'])
-        print('The face at ' +
-              str(position['Left']) + ' ' +
-              str(position['Top']) +
-              ' matches with ' + similarity + '% confidence')
-
-
-    print(response['FaceMatches'])
 
     return len(response['FaceMatches'])
 
@@ -47,13 +40,12 @@ def main(event, context):
         "Access-Control-Allow-Methods": "POST"
     }
     
-    print(event)
     id_file_name = event["id_file_name"]
     selfie_file_name = event["selfie_file_name"]
+    body = ''
 
     try:
         face_matches = compare_faces(id_file_name, selfie_file_name)
-        print("Compared faces:" + str(face_matches))
 
         if face_matches > 0: 
             body = 'Face match verified'

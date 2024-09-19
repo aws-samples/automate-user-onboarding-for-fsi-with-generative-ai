@@ -84,7 +84,7 @@ export class PennyInfraStack extends cdk.Stack {
 
   createLambda_verifyId = () => {
     this.verifyIdLambda = new lambda.Function(this, 'VerifyId', {
-      runtime: lambda.Runtime.PYTHON_3_8,
+      runtime: lambda.Runtime.PYTHON_3_11,
       code: lambda.Code.fromAsset('../api/lambdas'),
       handler: 'verify-id.main',
       timeout: Duration.seconds(10),
@@ -103,7 +103,7 @@ export class PennyInfraStack extends cdk.Stack {
 
   createLambda_verifyFace = () => {
     this.verifyFaceLambda = new lambda.Function(this, 'VerifyFace', {
-      runtime: lambda.Runtime.PYTHON_3_8,
+      runtime: lambda.Runtime.PYTHON_3_11,
       code: lambda.Code.fromAsset('../api/lambdas'),
       handler: 'verify-face.main',
       timeout: Duration.seconds(10),
@@ -115,15 +115,28 @@ export class PennyInfraStack extends cdk.Stack {
     this.verifyFaceLambda.addToRolePolicy(new iam.PolicyStatement(
       {
         effect: iam.Effect.ALLOW, 
-        actions: ['rekognition:CompareFaces', 's3:Get*', 's3:List*', 's3:Describe*'],
-        resources: ['*']
+        actions: ['s3:Get*', 's3:List*', 's3:Describe*'],
+        resources: [
+          `arn:aws:s3:::${this.idBucket.bucketName}`,
+          `arn:aws:s3:::${this.idBucket.bucketName}/*`
+        ]
+      }),
+    )
+
+    this.verifyFaceLambda.addToRolePolicy(new iam.PolicyStatement(
+      {
+        effect: iam.Effect.ALLOW, 
+        actions: ['rekognition:CompareFaces'],
+        resources: [
+          `*`,
+        ]
       }),
     )
   }
 
   createLambda_getAccount = () => {
     this.getAccountLambda = new lambda.Function(this, 'GetAccount', {
-      runtime: lambda.Runtime.PYTHON_3_8,
+      runtime: lambda.Runtime.PYTHON_3_11,
       code: lambda.Code.fromAsset('../api/lambdas'),
       handler: 'get-account.main',
       environment: {
@@ -142,7 +155,7 @@ export class PennyInfraStack extends cdk.Stack {
 
   createLambda_createAccount = () => {
     this.createAccountLambda = new lambda.Function(this, 'CreateAccount', {
-      runtime: lambda.Runtime.PYTHON_3_8,
+      runtime: lambda.Runtime.PYTHON_3_11,
       code: lambda.Code.fromAsset('../api/lambdas'),
       handler: 'create-account.main',
       environment: {
@@ -162,8 +175,10 @@ export class PennyInfraStack extends cdk.Stack {
     this.createAccountLambda.addToRolePolicy(new iam.PolicyStatement(
       {
         effect: iam.Effect.ALLOW, 
-        actions: ['ses:SendEmail'],
-        resources: ['*']
+        actions: ['ses:SendEmail', 'ses:SendRawEmail'],
+        resources: [
+          `arn:aws:ses:${this.region}:${this.account}:identity/*`,
+        ],
       }),
     )
   }
@@ -309,11 +324,40 @@ export class PennyInfraStack extends cdk.Stack {
       assumedBy: new iam.ServicePrincipal('kendra.amazonaws.com'),
     })
 
+    role.addToPolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'cloudwatch:PutMetricData',
+      ],
+      resources: ['*'],
+      conditions: {
+        'StringEquals': {
+          'cloudwatch:namespace': 'AWS/Kendra'
+        }
+      }
+    }));
+
+    role.addToPolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'logs:DescribeLogGroups',
+        'logs:CreateLogGroup',
+        'logs:PutLogEvents'
+      ],
+      resources: [
+        `arn:aws:logs:${this.region}:${this.account}:log-group:/aws/kendra/*`,
+        `arn:aws:logs:${this.region}:${this.account}:log-group:/aws/kendra/*:log-stream:*`
+      ]
+    }));
+
     role.addToPolicy(new iam.PolicyStatement(
       {
         effect: iam.Effect.ALLOW, 
-        actions: ['cloudwatch:PutMetricData', 'logs:DescribeLogGroups', 'logs:CreateLogGroup', 'logs:DescribeLogStreams', 'logs:CreateLogStream', 'logs:PutLogEvents', 's3:*'],
-        resources: ['*']
+        actions: ['s3:Get*', 's3:List*', 's3:Describe*'],
+        resources: [
+          `arn:aws:s3:::${this.catalogBucket.bucketName}`,
+          `arn:aws:s3:::${this.catalogBucket.bucketName}/*`
+        ]
       }),
     )
 
@@ -341,7 +385,8 @@ export class PennyInfraStack extends cdk.Stack {
   createLLM = () => {
     const vpc = new ec2.Vpc(this, 'LLMVpc', {
       subnetConfiguration: [
-        { subnetType: ec2.SubnetType.PUBLIC, cidrMask: 24, name: "public-" }
+        { subnetType: ec2.SubnetType.PUBLIC, cidrMask: 24, name: "public-" },
+        { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS, cidrMask: 24, name: "private-" }
       ]
     })
 
@@ -349,7 +394,6 @@ export class PennyInfraStack extends cdk.Stack {
       vpc: vpc,
       allowAllOutbound: true
     })
-    sg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80));
 
     const cluster = new ecs.Cluster(this, "LLMCluster", {
       vpc: vpc
@@ -365,8 +409,20 @@ export class PennyInfraStack extends cdk.Stack {
 
     taskDefinition.addToTaskRolePolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
-      resources: ['*'],
-      actions: ['bedrock:InvokeModel', 's3:PutObject', 'kendra:Retrieve']
+      resources: ['*'], 
+      actions: ['bedrock:InvokeModel']
+    }));
+
+    taskDefinition.addToTaskRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      resources: [`${this.idBucket.bucketArn}/*`],
+      actions: ['s3:PutObject']
+    }));
+
+    taskDefinition.addToTaskRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      resources: [this.kendraIndex.attrArn],
+      actions: ['kendra:Retrieve']
     }));
 
     const container = taskDefinition.addContainer("LLMContainer", {
@@ -394,9 +450,9 @@ export class PennyInfraStack extends cdk.Stack {
     this.llmService = new ecs.FargateService(this, 'LLMFargateService', { 
       cluster: cluster,
       taskDefinition: taskDefinition,
-      assignPublicIp: true,
+      assignPublicIp: false,
       securityGroups: [sg],
-      serviceName: 'LLMFargateService'
+      serviceName: 'LLMFargateService',
     })    
 
     const lb = new elbv2.ApplicationLoadBalancer(this, 'PennyALB', {

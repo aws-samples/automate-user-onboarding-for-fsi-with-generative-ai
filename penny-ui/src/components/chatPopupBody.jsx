@@ -134,7 +134,7 @@ class ChatPopupBody extends React.Component  {
 
         var url = ""
 
-        url = this.props.llmApiEndpoint + 'uploadId'
+        url = this.props.llmApiEndpoint + 'uploadDoc'
 
         let docPennyChat = {
             user: 'Penny',

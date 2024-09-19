@@ -35,10 +35,10 @@ config = dict(
     use_tools=True
 )
 llm = BedrockChat(
-        model_id='anthropic.claude-3-haiku-20240307-v1:0', 
+        model_id='anthropic.claude-3-5-sonnet-20240620-v1:0', 
         client=bedrock,
         model_kwargs={
-            "temperature": 0,
+            "temperature": 0.5,
             "top_k": 250,
             "top_p": 0.999,
             "stop_sequences": ["\\n\\nHuman:"]
@@ -61,7 +61,7 @@ async def question(request: Request) -> Response:
     response = agent.step()
     return JSONResponse(content={"message": response})
 
-@app.post("/uploadId")
+@app.post("/uploadDoc")
 async def id(file: UploadFile = File(...)) -> Response:
     try:
         contents = file.file.read()
