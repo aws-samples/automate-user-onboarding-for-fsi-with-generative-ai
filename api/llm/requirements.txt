@@ -2,7 +2,7 @@ fastapi==0.109.1
 uvicorn==0.24.0.post1
 pydantic>=2.7.4,<3.0.0
 langchain==0.2.16
-langchain-community==0.2.5
+langchain-community==0.3.0
 langchain-core>=0.2.40,<0.3.0
 torch==2.4.1
 torchvision==0.19.1
