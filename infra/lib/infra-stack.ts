@@ -342,7 +342,8 @@ export class PennyInfraStack extends cdk.Stack {
       actions: [
         'logs:DescribeLogGroups',
         'logs:CreateLogGroup',
-        'logs:PutLogEvents'
+        'logs:PutLogEvents',
+        'logs:CreateLogStream'
       ],
       resources: [
         `arn:aws:logs:${this.region}:${this.account}:log-group:/aws/kendra/*`,
